@@ -9,9 +9,9 @@ template<class Child>
 class cAero
 {
 public:
-	void StepI()
+	void StepI(const double& t)
 	{
-		static_cast<Child*>(this)->Calculate();
+		static_cast<Child*>(this)->Calculate(t);
 	}
 };
 
@@ -28,7 +28,7 @@ public:
 		std::shared_ptr<std::valarray<double>> y,
 		std::shared_ptr<std::valarray<double>> u,
 		std::shared_ptr<sSharedDataMissile> dat
-		) :A(A), B(B), C(C), D(D), y(y), u(u), lasti(1), t(0.),
+		) :A(A), B(B), C(C), D(D), y(y), u(u), lasti(1),
 		data(dat)
 	{
 
@@ -54,10 +54,11 @@ public:
 
 		data->Cq = 0.5 * rho * data->S;
 		data->V_e = data->I_sp * g_0;
-		
+		if (data->C_D_Ma[0].size() != data->C_D_Ma[1].size()) throw std::domain_error("drag table invalid");
+		(*u)[1] = data->m_dot_0;
 	}
 	~cCoeff() {}
-	void Calculate()
+	void Calculate(const double& t)
 	{
 		//y = {u, r, m, ay}
 		//x = {u, m}
@@ -93,7 +94,7 @@ public:
 private:
 	std::shared_ptr<mtx> A, B, C, D;
 	std::shared_ptr<vec> y, u;
-	double t;
+	//double t;
 	std::shared_ptr<sSharedDataMissile> data;
 	size_t lasti;
 };

@@ -30,9 +30,9 @@ public:
 			ur = (*y)[0] / (*y)[1];
 			pos->dPsi = (*y)[1] * (*ts);
 			l = 2 * ur * sin(pos->dPsi / 2.);
+			pos->pos[0] += l * sin(pos->Psi + pos->dPsi/ 2.);
+			pos->pos[1] += l * cos(pos->Psi + pos->dPsi/ 2.);
 			pos->Psi += pos->dPsi;
-			pos->pos[0] += l * sin(pos->Psi / 2.);
-			pos->pos[1] += l * cos(pos->Psi / 2.);
 		}
 		else						//straight
 		{
