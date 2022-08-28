@@ -2,58 +2,55 @@
 #include "utilities.h"
 #include <valarray>
 #include <stdexcept>
+#include <memory>
 
-template <typename T>
 class cKinematics
 {
 public:
-	cKinematics(std::valarray<T>* y, std::valarray<T>* pos, std::valarray<cAzimuth<T>>* dir, T* ts)
-		y(y), pos(pos), dir(dir), ts(ts)
+	cKinematics(
+		std::shared_ptr<vec> y, 
+		std::shared_ptr<sPosition> pos,
+		std::shared_ptr<double> ts):
+		y(y), pos(pos), ts(ts), l(0), ur(0)
 	{
 		if (y->size() < 2) 
 			throw std::domain_error("Insufficient state information");
 		if (pos == nullptr)	
-			pos = new std::valarray<T>{ 0,0 };
-		if (pos->size() < 2)
-			pos->resize(2);
-		if (dir == nullptr)
-			dir = new std::valarray<cAzimuth<T>>{ 0,0 };
-		if (dir->size() < 2)
-			dir->resize(2);
-			
+			pos = std::make_shared<sPosition>();
 	}
 
-	std::valarray<T>* Step()
+	void Step()
 	{
 		// y = {u, r}
 		// pos = {x, y}
-		// dir = {Psi, deltaPsi}
-		if ((*y)[1] != 0.)
+		// Psi
+		// dPsi
+		if ((*y)[1] != 0.)			//arc
 		{
 			ur = (*y)[0] / (*y)[1];
-			(*dir)[1] = (*y)[1] * (*ts);
-			l = 2 * ur * sin((*dir)[1] / 2.);
-			(*dir)[0] += (*dir)[1];
-			(*pos)[0] += l * sin((*dir)[0] / 2.);
-			(*pos)[1] += l * cos((*dir)[0] / 2.);
+			pos->dPsi = (*y)[1] * (*ts);
+			l = 2 * ur * sin(pos->dPsi / 2.);
+			pos->Psi += pos->dPsi;
+			pos->pos[0] += l * sin(pos->Psi / 2.);
+			pos->pos[1] += l * cos(pos->Psi / 2.);
 		}
-		else
+		else						//straight
 		{
-			l = (*y)[0] * ts;
-			(*dir)[1] = 0.;
-			(*pos)[0] += l * sin((*dir)[0]);
-			(*pos)[1] += l * cos((*dir)[0]);
+			l = (*y)[0] * (*ts);
+			pos->dPsi = 0.;
+			pos->pos[0] += l * sin(pos->Psi);
+			pos->pos[1] += l * cos(pos->Psi);
 		}
 	}
 
 	~cKinematics() {
-		//we own nothing
 	}
 
 private:
-	std::valarray<T>* y, * pos;
-	std::valarray<T>* dir;
-	T* ts, ur, l;
+	std::shared_ptr<vec> y;
+	std::shared_ptr<sPosition> pos;
+	std::shared_ptr<double> ts;
+	double ur, l;
 
 };
 

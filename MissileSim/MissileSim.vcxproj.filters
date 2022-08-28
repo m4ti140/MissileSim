@@ -27,6 +27,12 @@
     <ClInclude Include="cKinematics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cAero.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cWorldObject.cpp">
