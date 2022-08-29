@@ -117,5 +117,31 @@ Where:
   - $X_{C_Y} = -{qS \over m}KC_Y$
   - $X_{\dot{m}} = {V_e \over m}$
   - $N_{C_Y} = {qS \over mu}$
-  - $q = {1\over2}{\rho}u^2$
+  - $q = {1\over2}{\rho}u^2$ - dynamic pressure
   
+Finally, the guidance law is given by
+$$ C_Y = {m \over qS}k_p\dot{\lambda}V_c
+Where
+  - $\lambda = atan2({x_{target}-x_{missile} \over y_{target}-y_{missile}})$
+  - $V_c = u_{missile}cos(\Psi_{missile}-\lambda)-u_{target}cos(\Psi_{target}-\lambda)$
+
+### Structure
+The signal flow for the missile model is represented by the following diagram
+
+![Signal_missile_sim drawio](https://user-images.githubusercontent.com/19916764/187311999-601ecc81-6bea-4310-8224-3a1db65ff076.png)
+
+The signal flow for target model is simpler and represented by:
+
+![signal_target drawio](https://user-images.githubusercontent.com/19916764/187313128-988310ce-38f1-43dd-8709-d71752696a1c.png)
+
+The following diagram shows the class structure. cMissileNonLinear is not shown as it is very similar to cMissileLTI
+
+![MissileSimstructure](https://user-images.githubusercontent.com/19916764/187315562-73e5ad39-1c42-4e12-9ee4-c8a821000ac9.png)
+
+Notable feature is shared ownership of data structures (state space matrices, input/output/observation vectors etc.) between parent cWorldObject and all worker objects it is composed of, to avoid passing references on every call of individual worker methods. Dynamic polymorphism is only used between cWorldObjects to avoid unnecessary virtual function calls.
+
+cAzimuth class was created to handle operations on angles and avoid overflows.
+
+cLTI uses Euler solver to integrate state equations, while cGeneralSSM uses Runge-Kutta 4th order solver and is supplied with arbitrary functions $f(x,u,t,...)$ to allow for full equations of motion without linearization.
+
+In debug environment there is a 50% performance loss when using non-linear solver for minimal gain in quality. With more complex systems howeer, pre-generated lookup tables would likely be used for LTI system, which would further increase performance over full non-linear model.
