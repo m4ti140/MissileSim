@@ -16,43 +16,6 @@ public:
 	
 };
 
-//template <class Child>
-//class cMissile : public cWorldObject
-//{
-//public:
-//	cMissile(vec initial,
-//		sSharedDataMissile initialData,
-//		sPosition initialPosit)
-//		:SSoutput(std::make_shared<vec>(initial)),
-//		position(std::make_shared<sPosition>(initialPosit)),
-//		data(std::make_shared<sSharedDataMissile>(initialData)),
-//		target(nullptr)		//no target unless set
-//	{
-//		this->InitI();
-//	}
-//	void InitI()
-//	{
-//		static_cast<Child*>(this)->Init(SSoutput, data, position);
-//	}
-//	void Simulate()
-//	{
-//		static_cast<Child*>(this)->SimulateImpl(target);
-//	}
-//	std::shared_ptr<const cWorldObject> GetTarget()
-//	{
-//		return target;
-//	}
-//	const vec& GetState() const;
-//	const sPosition& GetPosition() const;
-//	void SetTarget(std::shared_ptr<const cWorldObject> other);
-//
-//private:
-//	std::shared_ptr<vec> SSoutput;
-//	std::shared_ptr<sPosition> position;
-//	std::shared_ptr<sSharedDataMissile> data;
-//	std::shared_ptr<const cWorldObject> target;
-//};
-
 class cMissileLTI : public cWorldObject
 {
 public:
@@ -61,9 +24,7 @@ public:
 		sSharedDataMissile initialData,
 		sPosition initialPosit);
 	~cMissileLTI();
-	//void Init(std::shared_ptr<vec> output,
-	//	std::shared_ptr<sSharedDataMissile> data,
-	//	std::shared_ptr<sPosition> posit);
+
 	void Simulate();
 	const vec& GetState() const;
 	const sPosition& GetPosition() const;
@@ -75,13 +36,59 @@ private:
 	std::shared_ptr<vec> SSoutput;
 	std::shared_ptr<sPosition> position;
 	std::shared_ptr<sSharedDataMissile> data;
-	std::shared_ptr<const cWorldObject> target;
-	std::unique_ptr<cCoeff> aero;
-	std::unique_ptr<cLTI> state;
-	std::unique_ptr<cKinematics> kinematics;
-	std::unique_ptr<cPN> controller;
 	std::shared_ptr<double> ts;
+	std::shared_ptr<const cWorldObject> target;
+	cCoeff aero;
+	cLTI state;
+	cKinematics kinematics;
+	cPN controller;
 	double t;
+};
+
+class cMissileNonLinear : public cWorldObject
+{
+public:
+	cMissileNonLinear(vec initial,
+		std::shared_ptr<double> ts,
+		sSharedDataMissile initialData,
+		sPosition initialPosit);
+	~cMissileNonLinear();
+	void Simulate();
+	const vec& GetState() const;
+	const sPosition& GetPosition() const;
+	void SetTarget(std::shared_ptr<const cWorldObject> other);
+
+private:
+	static inline void f(vec& k, const vec& x, const vec& u, const std::shared_ptr<sSharedDataMissile>& data, const double& t)
+	{
+		if (t < data->t_burn) k[1] = -data->m_dot_0;
+		else k[1] = 0;
+
+		double m = std::max(data->m_0 + k[1] * t,170.);
+
+		data->qS = data->Cq * x[0] * x[0];
+		data->Ma = x[0] / a;
+		data->C_L_req = m * g_0/data->qS;
+		double C_D = interp::Linear(data->C_D_Ma[1], data->C_D_Ma[0], data->Ma, data->lasti) + data->K * data->C_L_req * data->C_L_req + data->K * u[0] * u[0];
+		k[0] = (data->V_e * -k[1] - data->qS * C_D) / m;
+
+ 		//if (std::isnan(k[0]) || std::isnan(k[1])) throw std::domain_error("output is NAN");
+	}
+	static inline void g(vec& y, const vec& x, const vec& u, const std::shared_ptr<sSharedDataMissile>& data, const double& t)
+	{
+		y[0] = x[0];
+		y[1] = data->Cq * x[0] * u[0]/x[1];
+		y[2] = x[1];
+		//if (std::isnan(y[0]) || std::isnan(y[1]) || std::isnan(y[2])) throw std::domain_error("output is NAN");
+	}
+	std::shared_ptr<sSharedDataMissile> data;
+	std::shared_ptr<vec> input, SSoutput;
+	std::shared_ptr<sPosition> position;
+	std::shared_ptr<const cWorldObject> target;
+	std::shared_ptr<double> ts, t;
+	cGeneralSSM<sSharedDataMissile> state;
+	cKinematics kinematics;
+	cPN controller;
 };
 
 class cTarget : public cWorldObject

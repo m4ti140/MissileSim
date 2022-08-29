@@ -25,7 +25,7 @@ public:
 		// pos = {x, y}
 		// Psi
 		// dPsi
-		if ((*y)[1] != 0.)			//arc
+		if ((float)(*y)[1] != 0. && -(float)(*y)[1] != 0.)			//arc
 		{
 			ur = (*y)[0] / (*y)[1];
 			pos->dPsi = (*y)[1] * (*ts);

@@ -3,12 +3,13 @@
 #include <deque>
 #include <random>
 #include <algorithm>
+#include <cmath>
 
 template<class Child>
 class cControl
 {
 public:
-	void StepI() 
+	void StepI()
 	{
 		static_cast<Child*>(this)->Step();
 	}
@@ -31,15 +32,22 @@ public:
 		this->targetPosit = targetPosit;
 		this->targetState = targetState;
 	}
-	void Step()
+	inline void Step()
 	{
 		//input = {CY,m_dot}
 		//state = {u,r,m,ay}
+		if (std::isnan((*input)[0])) throw std::domain_error("velocity is nan");
 		lambda = atan2(targetPosit.pos[0]- position->pos[0], targetPosit.pos[1] - position->pos[1]);
+		if (std::isnan((*input)[0])) throw std::domain_error("velocity is nan");
 		V_c = (*state)[0] * cos(lambda.Delta(position->Psi)) - targetState[0] * cos(lambda.Delta(targetPosit.Psi));
+		if (std::isnan((*input)[0])) throw std::domain_error("velocity is nan");
 		error = prevLambda.Delta(lambda) / (*ts);
+		if (std::isnan((*input)[0])) throw std::domain_error("velocity is nan");
 		(*input)[0] = std::clamp((*state)[2] / data->qS * gain * error * V_c,-data->C_Y_max,data->C_Y_max);
+		if (std::isnan((*input)[0])) (*input)[0] = 0;
 		prevLambda = lambda;
+		if (std::isnan((*input)[0])) throw std::domain_error("velocity is nan");
+		//if (std::isnan((*input)[0])) throw std::domain_error("input is nan");
 	}
 
 private:

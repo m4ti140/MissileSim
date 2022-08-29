@@ -4,6 +4,8 @@
 #include<memory>
 #include<array>
 #include<vector>
+#include<cstdio>
+#include<cstdlib>
 
 //constants
 
@@ -162,8 +164,9 @@ private:
 
 struct sSharedDataMissile
 {
-	double Ma, qS, qSmu, C_L_req, V_min, I_sp, m_0, t_burn, K, g_max, S, m_dot_0, Psi_0, x_0, y_0, C_Y_max, Cq, V_e;
+	double Ma=0, qS=0, qSmu=0, C_L_req=0, V_min, I_sp, m_0, t_burn, K, g_max, S, m_dot_0, Psi_0, x_0, y_0, C_Y_max, Cq, V_e;
 	std::vector<double> C_D_Ma[2];
+	size_t lasti;
 };
 
 struct sSharedDataTarget

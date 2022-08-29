@@ -7,20 +7,20 @@
 #include "utilities.h"
 
 
-template<class Child>
-class cStateSpace
-{
-public:
-	void StepI() 
-	{
-		static_cast<Child*>(this)->Step();
-	};
-};
+//template<class Child>
+//class cStateSpace
+//{
+//public:
+//	void StepI() 
+//	{
+//		static_cast<Child*>(this)->Step();
+//	};
+//};
 
 //using dynamic polymorphism to allow for different SSM engine to be selected with command line arguments, might do away with it if one approach is terribly slow
 
 
-class cLTI : public cStateSpace<cLTI>
+class cLTI// : public cStateSpace<cLTI>
 {
 public:
 	cLTI(
@@ -43,25 +43,29 @@ private:
 	size_t dimArow, dimAcol, dimBrow, dimBcol, dimCrow, dimCcol, dimDrow, dimDcol, dimx, dimy, dimu;
 };
 
-class cGeneralSSM : public cStateSpace<cGeneralSSM>
+template<typename S>
+class cGeneralSSM// : public cStateSpace<cGeneralSSM<S>>
 {
 public:
 	cGeneralSSM(
-		std::function<void(vec&, const vec&, const vec&)> f,
-		std::function<void(vec&, const vec&, const vec&)> g,
+		std::function<void(vec&, const vec&, const vec&, const std::shared_ptr<S>&, const double&)> f,
+		std::function<void(vec&, const vec&, const vec&, const std::shared_ptr<S>&, const double&)> g,
 		std::shared_ptr<vec> u,
 		std::shared_ptr<vec> y,
 		vec x_0,
-		std::shared_ptr<double> ts);
+		std::shared_ptr<S> data,
+		std::shared_ptr<double> ts,
+		std::shared_ptr<double> t);
 	~cGeneralSSM();
 
 	void Step();
 private:
-	std::function<void(vec&, const vec&, const vec&)> f;
-	std::function<void(vec&, const vec&, const vec&)> g;
+	std::function<void(vec&, const vec&, const vec&, const std::shared_ptr<S>&, const double&)> f;
+	std::function<void(vec&, const vec&, const vec&, const std::shared_ptr<S>&, const double&)> g;
 	std::shared_ptr<vec> u, y;
+	std::shared_ptr<S> data;
 	vec x, dx, k1, k2, k3, k4;
-	std::shared_ptr<double> ts;
+	std::shared_ptr<double> ts, t;
 };
 
 inline cLTI::cLTI(
@@ -131,15 +135,17 @@ inline void cLTI::Step()
 
 
 
-
-inline cGeneralSSM::cGeneralSSM(
-	std::function<void(vec&, const vec&, const vec&)> f,
-	std::function<void(vec&, const vec&, const vec&)> g,
+template <typename S>
+inline cGeneralSSM<S>::cGeneralSSM(
+	std::function<void(vec&, const vec&, const vec&, const std::shared_ptr<S>&, const double&)> f,
+	std::function<void(vec&, const vec&, const vec&, const std::shared_ptr<S>&, const double&)> g,
 	std::shared_ptr<vec> u,
 	std::shared_ptr<vec> y,
 	vec x_0,
-	std::shared_ptr<double> ts):
-	f(f), g(g) ,u(u), y(y)
+	std::shared_ptr<S> data,
+	std::shared_ptr<double> ts,
+	std::shared_ptr<double> t):
+	f(f), g(g) ,u(u), y(y), data(data), ts(ts), t(t)
 {
 	x = x_0;
 	dx = x_0;
@@ -150,19 +156,21 @@ inline cGeneralSSM::cGeneralSSM(
 	k4.resize(x.size());
 }
 
-inline cGeneralSSM::~cGeneralSSM()
+template < typename S>
+inline cGeneralSSM<S>::~cGeneralSSM()
 {
 }
 
-inline void cGeneralSSM::Step()
+template < typename S>
+inline void cGeneralSSM<S>::Step()
 {
 	//RK4
-	f(k1, x, (*u));
-	f(k2, x + k1 * (*ts) / 2., (*u));
-	f(k3, x + k2 * (*ts) / 2., (*u));
-	f(k4, x + k3 * (*ts), (*u));
+	f(k1, x, (*u),data,*t);
+	f(k2, x + k1 * (*ts) / 2., (*u),data,*t+*ts/2.);
+	f(k3, x + k2 * (*ts) / 2., (*u),data,*t+*ts/2.);
+	f(k4, x + k3 * (*ts), (*u),data,*t+*ts);
 
 	x += (*ts) / 6 * (k1 + 2 * k2 + 2 * k3 + k4);
 
-	g((*y), x, (*u));
+	g((*y), x, (*u),data,*t);
 }
