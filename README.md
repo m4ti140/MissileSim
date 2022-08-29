@@ -134,14 +134,14 @@ The signal flow for target model is simpler and represented by:
 
 ![signal_target drawio](https://user-images.githubusercontent.com/19916764/187313128-988310ce-38f1-43dd-8709-d71752696a1c.png)
 
-The following diagram shows the class structure. cMissileNonLinear is not shown as it is very similar to cMissileLTI
+The following diagram shows the class structure. `cMissileNonLinear` is not shown as it is very similar to `cMissileLTI`
 
 ![MissileSimstructure](https://user-images.githubusercontent.com/19916764/187315562-73e5ad39-1c42-4e12-9ee4-c8a821000ac9.png)
 
-Notable feature is shared ownership of data structures (state space matrices, input/output/observation vectors etc.) between parent cWorldObject and all worker objects it is composed of, to avoid passing references on every call of individual worker methods. Dynamic polymorphism is only used between cWorldObjects to avoid unnecessary virtual function calls.
+Notable feature is shared ownership of data structures (state space matrices, input/output/observation vectors etc.) between parent `cWorldObject` and all worker objects it is composed of, to avoid passing references on every call of individual worker methods. Dynamic polymorphism is exclusively used between `cWorldObjects` to avoid unnecessary virtual function calls while still allowing for an arbitrary amount of missiles and targets to be simulated if need be.
 
-cAzimuth class was created to handle operations on angles and avoid overflows.
+Additionally, `cAzimuth` class (see utilities.h) was created to handle operations on angles.
 
-cLTI uses Euler solver to integrate state equations, while cGeneralSSM uses Runge-Kutta 4th order solver and is supplied with arbitrary functions $f(x,u,t,...)$ to allow for full equations of motion without linearization.
+`cLTI` uses Euler solver to integrate state equations, while `cGeneralSSM` uses Runge-Kutta 4th order solver and is supplied with arbitrary functions $f(x,u,t,...)$ to allow for full equations of motion without linearization.
 
 In debug environment there is a 50% performance loss when using non-linear solver for minimal gain in quality. With more complex systems howeer, pre-generated lookup tables would likely be used for LTI system, which would further increase performance over full non-linear model.
