@@ -131,11 +131,11 @@ options:
 
 	sSharedDataTarget targetData;
 	targetData.g_t_max = 6;
-	targetData.V = 300;
+	targetData.V = V_t;
 
 	sPosition targetPosit;
 	targetPosit.dPsi = 0;
-	targetPosit.pos = { 0,10000 };
+	targetPosit.pos = { 0,r_0 };
 	targetPosit.Psi = PI;
 
 	vec targetState = { targetData.V,0 };
