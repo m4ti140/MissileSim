@@ -36,25 +36,19 @@ Additionally, the following assumptions were taken based on available data
   - Since no information about mass distribution, lift polar or aerodyanmic configuration of the missile is given, the conservation of angular momentum simulation was skipped - it is assumed that the missile always points along velocity vector
   - To facilitate the above the missile configuration is assumed to be wing controlled, with 4 big control surfaces near the center of mass and 4 static fins for stability.
   - Because of these assumptions the local horizon, body and stability frames of referance are alligned and thrust is aligned to velocity vector, simplifying equations of motion in body axes to:
-  ```math
-  \begin{cases}
-    m{du \over dt} = I_{sp} {g_0} {dm \over dt} - {1\over2}\rho{u^2}S{C_D}\\
-    \\
-    {dm \over dt} = \dot{m}\\
-    \\
-    r = {{1\over2}\rho{u}S{C_Y}\over{m}}
-  \end{cases}
-  ```
-  - And kinematic equations in world reference frame for piecewise-circular motion can be given by
-  ```math
-  \begin{cases}
-    d\Psi = rdt\\
-    \\
-    dx = 2{u \over r}sin({{d\Psi} \over 2})sin(\Psi)\\
-    \\
-    dy = 2{u \over r}sin({{d\Psi} \over 2})cos(\Psi)
-  \end{cases}
-  ```
+  
+  $$m{du \over dt} = I_{sp} {g_0} {dm \over dt} - {1\over2}\rho{u^2}S{C_D}$$
+  
+  $${dm \over dt} = \dot{m}\\ \\ r = {{1\over2}\rho{u}S{C_Y}\over{m}}$$
+  
+  - And kinematic equations in world reference frame for piecewise-circular motion can be given by:
+  
+  $$d\Psi = rdt$$
+  
+  $$dx = 2{u \over r}sin({{d\Psi} \over 2})sin(\Psi)$$
+  
+  $$dy = 2{u \over r}sin({{d\Psi} \over 2})cos(\Psi)$$
+
   - Where:
     * $u = {dx \over dt}$
     * $r = {d{\psi} \over dt}$
@@ -65,53 +59,11 @@ Additionally, the following assumptions were taken based on available data
   - Since there is no information about actuators or critical angle of deflection of control surfaces, the $C_Y$ is used directly as a control variable
 
 The state equations can be linearized as
-  ```math
-  \begin{Bmatrix}
-    \dot{u}\\
-    \dot{m}
-  \end{Bmatrix} =
-  \begin{bmatrix}
-    X_u & 0\\
-    0 & 0
-  \end{bmatrix}
-  \begin{Bmatrix}
-    u\\
-    m
-  \end{Bmatrix} +
-  \begin{bmatrix}
-    X_{C_Y} & X_{\dot{m}}\\
-    0 & -1
-  \end{bmatrix}
-  \begin{Bmatrix}
-    C_Y\\
-    \dot{m}
-  \end{Bmatrix}
-  ```
-  ```math
-  \begin{Bmatrix}
-    u\\
-    r\\
-    m
-  \end{Bmatrix} =
-  \begin{bmatrix}
-    1 & 0\\
-    0 & 0\\
-    0 & 1
-  \end{bmatrix}
-  \begin{Bmatrix}
-    u\\
-    m
-  \end{Bmatrix} +
-  \begin{bmatrix}
-    0 & 0\\
-    N_{C_Y} & 0\\
-    0 & 0
-  \end{bmatrix}
-  \begin{Bmatrix}
-    C_Y\\
-    \dot{m}
-  \end{Bmatrix}
-  ```
+
+![CodeCogsEqn](https://user-images.githubusercontent.com/19916764/187320403-fe12d9dc-7eb2-48cd-b86c-ff1a89dbfe8d.png)
+
+![CodeCogsEqn2](https://user-images.githubusercontent.com/19916764/187320557-b61ef448-a84d-48c5-85bf-2aa48beefe02.png)
+
 Where:
   - $X_u = -{qSC_D \over mu}$
   - $X_{C_Y} = -{qS \over m}KC_Y$
